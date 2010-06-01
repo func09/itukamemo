@@ -12,6 +12,7 @@ class Memo < ActiveRecord::Base
   }
   
   belongs_to :user
+  attr_accessor :frequency_type
   validates_presence_of :user_id
   validates_presence_of :message
 
@@ -20,18 +21,36 @@ class Memo < ActiveRecord::Base
               :conditions => ['delivered = ? AND next_remind_at < ?', false, Time.now],
               :order => 'next_remind_at'
 
+  # メモ内容とともに新規作成する
+  def self.create_with_message(user, message, frequency = :auto)
+    memo = new(:user => user, :message => message, :frequency = frequency)
+    memo.save
+    memo
+  end
+  
+  before_save :reserve
+  
   # リマインドを通知する
   def remind!
     logger.info "メモを（#{self.id}）リマインドします"
+    
     # twitterで通知
     # self.user.
-    # self.destory
+    
+    # 配送済み
+    self.update_attribute(:delivered, true)
+    
     logger.info "メモを（#{self.id}）リマインドしました"
   end
 
+  # 予約する
+  def reserve
+    self.next_remind_at = self.calculate_next_remind_at(self.frequency_type)
+  end
+  
   # リマインド日時を計算する
-  def calculate_next_remind_at(frequency = :auto)
-    frequency, random_time = frequency.to_sym, nil
+  def calculate_next_remind_at(frequency)
+    frequency, random_time = (frequency || :auto).to_sym, nil
     if frequency == :auto
       random_time = rand(100.days)
     else
