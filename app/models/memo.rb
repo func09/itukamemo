@@ -1,17 +1,6 @@
-# == Schema Information
-#
-# Table name: memos
-#
-#  id             :integer         not null, primary key
-#  user_id        :integer         not null
-#  message        :string(255)     not null
-#  delivered      :boolean         default(FALSE)
-#  next_remind_at :datetime
-#  created_at     :datetime
-#  updated_at     :datetime
-#
 class Memo < ActiveRecord::Base
 
+  # リマインドの間隔
   FREQUENCIES = {
     :auto => { :label => 'AUTO', :frequency => nil },
     :one_week => { :label => '1WEEK', :frequency => 1.week },
@@ -26,8 +15,9 @@ class Memo < ActiveRecord::Base
   validates_presence_of :user_id
   validates_presence_of :message
 
+  # リマインド予約日時が過ぎたレコードを検索
   named_scope :nexts,
-              :conditions => ['next_remind_at < ?', Time.now],
+              :conditions => ['delivered = ? AND next_remind_at < ?', false, Time.now],
               :order => 'next_remind_at'
 
   # リマインドを通知する
@@ -39,7 +29,7 @@ class Memo < ActiveRecord::Base
     logger.info "メモを（#{self.id}）リマインドしました"
   end
 
-  # リマインド日時を設定する
+  # リマインド日時を計算する
   def calculate_next_remind_at(frequency = :auto)
     frequency, random_time = frequency.to_sym, nil
     if frequency == :auto
