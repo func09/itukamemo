@@ -2,3 +2,4 @@ rails -v 2.3.8
 pg
 oauth
 ezcrypto
+haml
