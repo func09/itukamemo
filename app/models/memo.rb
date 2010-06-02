@@ -1,3 +1,4 @@
+# -*- coding:utf-8 -*-
 class Memo < ActiveRecord::Base
 
   # リマインドの間隔
