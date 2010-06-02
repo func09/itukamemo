@@ -23,7 +23,7 @@ class Memo < ActiveRecord::Base
 
   # メモ内容とともに新規作成する
   def self.create_with_message(user, message, frequency = :auto)
-    memo = new(:user => user, :message => message, :frequency = frequency)
+    memo = new(:user => user, :message => message, :frequency => frequency)
     memo.save
     memo
   end
